@@ -1,0 +1,16 @@
+triton
+transformers
+deep-translator
+sentence-transformers
+faiss-cpu
+rank_bm25
+PyMuPDF
+pdf2image
+pytesseract
+debugpy
+pandas
+accelerate
+nltk
+sentencepiece
+sacremoses
+bitsandbytes

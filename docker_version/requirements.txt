@@ -9,3 +9,4 @@ pytesseract
 debugpy
 pandas
 accelerate
+matplotlib

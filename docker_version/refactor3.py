@@ -394,12 +394,13 @@ class Agent:
 def run_no_mod(runden=25, output_csv="agenten_dialog_pure.csv"):
     """
     Führt eine Simulation ohne Moderator durch und speichert die Ergebnisse im Unterordner 'no_mod'.
+    Das Format entspricht dem von run_with_mod.
     """
     # Erstelle zwei Agenten mit unterschiedlichen Eigenschaften
     agent_a = Agent(name="Agent Ökologisch A", gesinnung="ökologisch")
     agent_b = Agent(name="Agent Ökonomisch B", gesinnung="ökonomisch")
 
-    speicher = []
+    protokoll = []
     letzter_satz = " Es gab noch kein Gespräch. "
     letzter_satz_a = letzter_satz
     letzter_satz_b = letzter_satz
@@ -423,8 +424,18 @@ def run_no_mod(runden=25, output_csv="agenten_dialog_pure.csv"):
         print(f" **Agent B entscheidet:** {agent_b_entscheidung}")
         print("-" * 50)
 
-        speicher.append([runde, "AgentA", "ökologisch", antwort_a_bereinigt, agent_a_entscheidung])
-        speicher.append([runde, "AgentB", "ökonomisch", antwort_b_bereinigt, agent_b_entscheidung])
+        # Format analog zu run_with_mod
+        protokoll.append({
+            "runde": runde,
+            "antwort_a": antwort_a_bereinigt,
+            "antwort_b": antwort_b_bereinigt,
+            "entscheidung_a": agent_a_entscheidung,
+            "entscheidung_b": agent_b_entscheidung,
+            "moderation_a": None,
+            "moderation_b": None,
+            "quelle_a": None,
+            "quelle_b": None
+        })
 
         letzter_satz_b = antwort_b_bereinigt.replace("<|assistant|>", "").replace("Assistant:", "").strip()
         letzter_satz_a = antwort_a_bereinigt.replace("<|assistant|>", "").replace("Assistant:", "").strip()
@@ -432,7 +443,7 @@ def run_no_mod(runden=25, output_csv="agenten_dialog_pure.csv"):
         print(f" **Runde {runde} gespeichert!**")
         print("-" * 50)
 
-    df = pd.DataFrame(speicher, columns=["Runde", "Agent", "Gesinnung", "Gesprochene Worte", "Entscheidung"])
+    protokoll_df = pd.DataFrame(protokoll)
     # Finde einen freien Dateinamen mit Nummerierung (_0000, _0001, ...)
     base, ext = os.path.splitext(output_csv)
     i = 0
@@ -445,9 +456,7 @@ def run_no_mod(runden=25, output_csv="agenten_dialog_pure.csv"):
         if not os.path.exists(full_path):
             break
         i += 1
-    df.to_csv(full_path, mode="w", header=True, index=False, encoding="utf-8")
-    df.to_csv(full_path, mode="w", header=True, index=False, encoding="utf-8")
-
+    protokoll_df.to_csv(full_path, mode="w", header=True, index=False, encoding="utf-8")
 
     print("\n **Simulation beendet!**")
 
@@ -455,6 +464,7 @@ def run_with_mod(runden=25, output_csv="agenten_dialog_mod.csv", text_path=None)
     """
     Führt eine Simulation mit Moderator durch und speichert die Ergebnisse im Unterordner 'with_mod'.
     """
+    # Erstelle zwei Agenten und einen Moderator
     # Erstelle zwei Agenten und einen Moderator
     agent_c = Agent(name="Agent Innovativ C", gesinnung="innovativ")
     agent_d = Agent(name="Agent WinWin D", gesinnung="winwinsituation")
@@ -473,7 +483,7 @@ def run_with_mod(runden=25, output_csv="agenten_dialog_mod.csv", text_path=None)
         antwort_c_clean = translate_to_german(get_first_two_sentences(agent_c_antwort.replace("<|assistant|>", "").replace("Assistant:", "").replace("\n","").replace("Antwort:","").strip()))
         antwort_d_clean = translate_to_german(get_first_two_sentences(agent_d_antwort.replace("<|assistant|>", "").replace("Assistant:", "").replace("\n","").replace("Antwort:","").strip()))
 
-        entscheidung_c = agent_c.entscheide()entscheidung_c
+        entscheidung_c = agent_c.entscheide()
         entscheidung_d = agent_d.entscheide()
 
         print(f"{agent_c.name} sagt: {antwort_c_clean}")
@@ -551,9 +561,9 @@ def run_with_mod(runden=25, output_csv="agenten_dialog_mod.csv", text_path=None)
 
 # Beispielaufrufe:
 
-for i in range(10):
-    #run_no_mod()
-    run_with_mod(text_path="./data")
+for i in range(16):
+    run_no_mod()
+    #run_with_mod(text_path="./data")
     for name in ("agent_c", "agent_d", "moderator", "agent_a", "agent_b"):
         if name in globals():
             del globals()[name]
